@@ -2,13 +2,11 @@
    {
       "userId": "1",
       "name": "Diego Losada",
-      "email": "diego@example.com",
-      "role": "Student"
+      "email": "diego@example.com"
    },
    {
       "userId": "2",
       "name": "Jane Smith",
-      "email": "jane@example.com",
-      "role": "Developer"
+      "email": "jane@example.com"
    }
 ]
