@@ -6,330 +6,115 @@ A complete three-tier serverless web application built with AWS services, follow
 
 https://github.com/user-attachments/assets/88643cdb-4152-41b8-8e15-2cafea487b62
 
+---
 
+## 🏗 Architecture Overview
 
-## 🏗️ Architecture
+This application uses a clean separation of concerns across three layers:
 
-This application implements a serverless three-tier architecture:
+- **Presentation Layer** – Amazon S3 hosts static files, CloudFront delivers content globally  
+- **Logic Layer** – API Gateway exposes REST endpoints, Lambda functions handle business logic  
+- **Data Layer** – DynamoDB stores user data in a NoSQL database  
 
-### Tier 1: Presentation Layer (Frontend)
-- **Amazon S3**: Stores static files (HTML, CSS, JavaScript)
-- **CloudFront**: CDN for global distribution and caching
+The data flows from the user to CloudFront, through the S3 frontend, to API Gateway, Lambda functions, and finally DynamoDB.
 
-### Tier 2: Logic Layer (Backend)
-- **AWS Lambda**: Executes serverless functions
-- **API Gateway**: Exposes REST API for the frontend
+---
 
-### Tier 3: Data Layer (Database)
-- **DynamoDB**: NoSQL database for user data storage
+## 🧰 Technology Stack
 
-### Data Flow
-```
-User → CloudFront → S3 (Frontend) → API Gateway → Lambda → DynamoDB
-```
+The application leverages AWS serverless services:
 
-## 🛠️ Technologies
+- **S3** for storage  
+- **CloudFront** for CDN  
+- **Lambda** for compute  
+- **API Gateway** for REST APIs  
+- **DynamoDB** for data persistence  
 
-- **AWS S3** - Object storage
-- **AWS CloudFront** - Content Delivery Network
-- **AWS Lambda** - Serverless compute
-- **AWS API Gateway** - REST API
-- **AWS DynamoDB** - NoSQL database
-- **Python 3.x** - Lambda runtime
-- **JavaScript (Vanilla)** - Frontend
-- **HTML5 & CSS3** - User interface
+---
 
 ## 📋 Prerequisites
 
-Before you begin, ensure you have:
-
-- ✔️ Active AWS account ([Create account](https://aws.amazon.com))
-- ✔️ AWS CLI installed ([Installation guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html))
-- ✔️ AWS credentials configured (`aws configure`)
-- ✔️ IAM permissions to create resources (S3, Lambda, DynamoDB, etc.)
-- ✔️ Git installed
-- ✔️ Code editor (VS Code recommended)
-
-## 🚀 Deployment
-
-### Step 1: Create DynamoDB Table
-```bash
-# Create the table
-aws dynamodb create-table \
-    --cli-input-json file://infrastructure/dynamodb-setup.json \
-    --region us-east-1
-
-# Wait for the table to become active
-aws dynamodb wait table-exists --table-name UsersTable --region us-east-1
-
-# Insert sample data
-aws dynamodb put-item \
-    --table-name UsersTable \
-    --item '{"userId": {"S": "1"}, "name": {"S": "Diego Losada"}, "email": {"S": "diego@example.com"}, "role": {"S": "Student"}}' \
-    --region us-east-1
-
-aws dynamodb put-item \
-    --table-name UsersTable \
-    --item '{"userId": {"S": "2"}, "name": {"S": "Jane Smith"}, "email": {"S": "jane@example.com"}, "role": {"S": "Developer"}}' \
-    --region us-east-1
-```
-
-### Step 2: Create Lambda Function
-
-#### Option A: Using AWS Console
-
-1. Go to [AWS Lambda Console](https://console.aws.amazon.com/lambda)
-2. Click **"Create function"**
-3. Select **"Author from scratch"**
-4. Configuration:
-   - **Function name**: `GetUserFunction`
-   - **Runtime**: Python 3.12
-   - **Architecture**: x86_64
-5. Click **"Create function"**
-6. Copy the content from `backend/lambda_function.py` into the editor
-7. Click **"Deploy"**
-
-#### Configure Permissions:
-
-1. In the Lambda function, go to **Configuration** → **Permissions**
-2. Click on the execution role
-3. Click **"Add permissions"** → **"Attach policies"**
-4. Search and add: `AmazonDynamoDBReadOnlyAccess`
-5. Save
-
-### Step 3: Create API Gateway
-
-1. Go to [API Gateway Console](https://console.aws.amazon.com/apigateway)
-2. Click **"Create API"** → **"REST API"** → **"Build"**
-3. Configuration:
-   - **API name**: `UsersAPI`
-   - **Endpoint Type**: Regional
-4. Click **"Create API"**
-
-#### Create Resource:
-
-5. Click **"Actions"** → **"Create Resource"**
-   - **Resource Name**: `users`
-   - **Resource Path**: `/users`
-6. Click **"Create Resource"**
-
-#### Create GET Method:
-
-7. Select the `/users` resource
-8. Click **"Actions"** → **"Create Method"** → Select **"GET"**
-9. Configuration:
-   - **Integration type**: Lambda Function
-   - **Lambda Function**: `GetUserFunction`
-   - Check: **Use Lambda Proxy integration**
-10. Click **"Save"** → **"OK"**
-
-#### Enable CORS:
-
-11. Select the `/users` resource
-12. Click **"Actions"** → **"Enable CORS"**
-13. Leave default values
-14. Click **"Enable CORS and replace existing CORS headers"**
-
-#### Deploy API:
-
-15. Click **"Actions"** → **"Deploy API"**
-16. **Deployment stage**: `[New Stage]`
-17. **Stage name**: `prod`
-18. Click **"Deploy"**
-
-19. **Copy the Invoke URL** (something like):
-```
-    https://abc123xyz.execute-api.us-east-1.amazonaws.com/prod
-```
-
-### Step 4: Test the API
-```bash
-# Replace with your API URL
-curl "https://YOUR-API-ID.execute-api.us-east-1.amazonaws.com/prod/users?userId=1"
-```
-
-You should see:
-```json
-{
-  "userId": "1",
-  "name": "Diego Losada",
-  "email": "diego@example.com",
-  "role": "Student"
-}
-```
-
-### Step 5: Configure S3 and CloudFront
-
-#### Create S3 Bucket:
-```bash
-# Create bucket (name must be globally unique)
-aws s3 mb s3://my-three-tier-app-12345 --region us-east-1
-
-# Upload frontend files
-aws s3 sync frontend/ s3://my-three-tier-app-12345/ --acl private
-```
-
-#### Create CloudFront Distribution:
-
-1. Go to [CloudFront Console](https://console.aws.amazon.com/cloudfront)
-2. Click **"Create Distribution"**
-3. **Origin domain**: Select your S3 bucket
-4. **Origin access**: **Origin access control settings (recommended)**
-5. Click **"Create control setting"** → **"Create"**
-6. **Default root object**: `index.html`
-7. Click **"Create distribution"**
-
-8. **Update bucket permissions**:
-   - CloudFront will show you a policy
-   - Copy it
-   - Go to your S3 bucket → **Permissions** → **Bucket policy**
-   - Paste the policy
-   - Click **"Save"**
-
-9. Wait 10-15 minutes for the distribution to deploy
-
-10. **Copy the CloudFront URL**:
-```
-    https://d123abc456def.cloudfront.net
-```
-
-### Step 6: Update Frontend with API URL
-```bash
-# Edit script.js
-nano frontend/script.js
-```
+You’ll need:
 
-Replace the line:
-```javascript
-const API_URL = 'https://YOUR-API-ID.execute-api.YOUR-REGION.amazonaws.com/prod/users';
-```
-
-With your real URL:
-```javascript
-const API_URL = 'https://abc123xyz.execute-api.us-east-1.amazonaws.com/prod/users';
-```
-```bash
-# Re-upload updated files
-aws s3 sync frontend/ s3://my-three-tier-app-12345/ --acl private
+- An active **AWS account** with configured credentials  
+- **AWS CLI** installed  
+- Appropriate **IAM permissions**  
+- **Git**  
+- A **code editor**  
 
-# Invalidate CloudFront cache
-aws cloudfront create-invalidation \
-    --distribution-id YOUR-DISTRIBUTION-ID \
-    --paths "/*"
-```
+Basic familiarity with AWS services is helpful.
 
-## 🧪 Testing
+---
 
-### Test API Locally
-```bash
-curl "https://YOUR-API.execute-api.us-east-1.amazonaws.com/prod/users?userId=1"
-```
+## 🚀 Quick Deployment
 
-### Test Web Application
+### 1️⃣ Database Setup
+Create a DynamoDB table called **`UsersTable`** and populate it with sample user data using the AWS CLI.
 
-1. Open your browser
-2. Go to your CloudFront URL
-3. You should see user data loaded
-4. Test the buttons to load different users
-5. Open **DevTools** (F12) → **Console** to see logs
-6. Check the **Network** tab to see API calls
+### 2️⃣ Backend Configuration
+Deploy a Lambda function using the **Python 3.12** runtime.  
+Attach the **DynamoDB read-only** policy to the execution role so Lambda can query the database.
 
-## 🔧 Troubleshooting
+### 3️⃣ API Creation
+Build a REST API in API Gateway with a **`/users`** resource and **GET** method.  
+Enable **CORS** and deploy to a **production stage**.  
+Copy the **Invoke URL** for frontend integration.
 
-### ❌ Error 403 in CloudFront
+### 4️⃣ Frontend Deployment
+Create an **S3 bucket** for static files and configure a **CloudFront distribution** as the CDN.  
+Update the bucket policy to allow CloudFront access.  
+Set **`index.html`** as the default root object.
 
-**Problem**: Page won't load
+### 5️⃣ Integration
+Update the frontend JavaScript with your **API Gateway URL**, then sync the files to S3.  
+Invalidate the **CloudFront cache** to see changes immediately.
 
-**Solutions**:
-```bash
-# 1. Check bucket permissions
-aws s3api get-bucket-policy --bucket my-three-tier-app-12345
+---
 
-# 2. Invalidate cache
-aws cloudfront create-invalidation --distribution-id YOUR-ID --paths "/*"
+## 🧪 Testing Your Application
 
-# 3. Clear browser cache (Ctrl + Shift + Delete)
-```
+- Test the API endpoint directly using **curl** with a `userId` parameter  
+- Open your **CloudFront URL** in a browser to interact with the full application  
 
-### ❌ CORS Error
+The interface should load user data dynamically through API calls.
 
-**Problem**: "CORS policy: No 'Access-Control-Allow-Origin' header"
+---
 
-**Solutions**:
-1. Verify headers are in `lambda_function.py`
-2. Verify CORS is enabled in API Gateway
-3. Redeploy the API in API Gateway
+## ⚠️ Common Issues
 
-### ❌ User Not Found
+- **403 errors**  
+  Usually indicate bucket permission problems or cache issues.  
+  Check your bucket policy and invalidate the CloudFront cache.
 
-**Problem**: 404 User not found
+- **CORS errors**  
+  Verify headers in your Lambda function and ensure CORS is enabled in API Gateway.
 
-**Solutions**:
-```bash
-# Verify data exists in DynamoDB
-aws dynamodb scan --table-name UsersTable --region us-east-1
+- **User not found errors**  
+  Check that the data exists in DynamoDB and that Lambda has the correct permissions.
 
-# Insert data if missing
-aws dynamodb put-item \
-    --table-name UsersTable \
-    --item '{"userId": {"S": "1"}, "name": {"S": "Diego"}, "email": {"S": "diego@test.com"}}' \
-    --region us-east-1
-```
+---
 
-### ❌ Lambda Without Permissions
+## 💰 Cost Estimate
 
-**Problem**: "AccessDeniedException" in Lambda logs
+This architecture is extremely cost-effective for development and low-traffic applications.  
+Most services fall within the **AWS Free Tier**, with estimated costs **under $1 per month** for typical usage.
 
-**Solution**:
-1. Go to Lambda → Configuration → Permissions
-2. Ensure the role has `AmazonDynamoDBReadOnlyAccess`
+---
 
-## 📊 Estimated Costs
+## 🧹 Cleanup
 
-For a test application with low traffic:
+To avoid ongoing charges, delete resources in this order:
 
-- **S3**: ~$0.02/month
-- **CloudFront**: ~$0.50/month
-- **Lambda**: Free (free tier: 1M requests/month)
-- **API Gateway**: Free (free tier: 1M calls/month)
-- **DynamoDB**: Free (free tier: 25 GB)
+1. CloudFront distribution  
+2. S3 bucket  
+3. API Gateway  
+4. Lambda function  
+5. DynamoDB table  
+6. IAM roles  
 
-**Estimated total**: < $1/month
+---
 
-## 🧹 Resource Cleanup
+## Final Notes
 
-To avoid charges, delete all resources:
-```bash
-# 1. Delete CloudFront distribution (from console)
-# 2. Delete S3 bucket
-aws s3 rb s3://my-three-tier-app-12345 --force
+This project demonstrates **modern serverless architecture patterns on AWS**, making it ideal for learning cloud development or building scalable web applications without managing servers.
 
-# 3. Delete API Gateway
-aws apigateway delete-rest-api --rest-api-id YOUR-API-ID
-
-# 4. Delete Lambda function
-aws lambda delete-function --function-name GetUserFunction
-
-# 5. Delete DynamoDB table
-aws dynamodb delete-table --table-name UsersTable
-
-# 6. Delete IAM role
-aws iam detach-role-policy \
-    --role-name lambda-dynamodb-role \
-    --policy-arn arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess
-
-aws iam delete-role --role-name lambda-dynamodb-role
-```
-
-## 📚 Additional Resources
-
-- [AWS Lambda Documentation](https://docs.aws.amazon.com/lambda/)
-- [API Gateway Documentation](https://docs.aws.amazon.com/apigateway/)
-- [DynamoDB Documentation](https://docs.aws.amazon.com/dynamodb/)
-- [NextWork Projects](https://nextwork.org)
-
-## 👨‍💻 Author
-
-**Diego Losada** - NextWork Student
-
-⭐ If this project was helpful, give it a star on GitHub!
