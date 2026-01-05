@@ -2,6 +2,12 @@
 
 A complete three-tier serverless web application built with AWS services, following cloud architecture best practices.
 
+<img width="946" height="568" alt="diagram" src="https://github.com/user-attachments/assets/0c399aa3-282f-4e9d-8347-934ef514f8c4" />
+
+https://github.com/user-attachments/assets/88643cdb-4152-41b8-8e15-2cafea487b62
+
+
+
 ## 🏗️ Architecture
 
 This application implements a serverless three-tier architecture:
