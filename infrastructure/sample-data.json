@@ -1,0 +1,14 @@
+[
+   {
+      "userId": "1",
+      "name": "Diego Losada",
+      "email": "diego@example.com",
+      "role": "Student"
+   },
+   {
+      "userId": "2",
+      "name": "Jane Smith",
+      "email": "jane@example.com",
+      "role": "Developer"
+   }
+]

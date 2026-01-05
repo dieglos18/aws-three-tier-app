@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>User Data Lookup</title>
+   <style>
+      * {
+         margin: 0;
+         padding: 0;
+         box-sizing: border-box;
+      }
+
+      body {
+         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+         background: linear-gradient(135deg, #0a1929 0%, #1a3a52 100%);
+         display: flex;
+         justify-content: center;
+         align-items: center;
+         min-height: 100vh;
+         padding: 20px;
+         color: #ffffff;
+      }
+
+      #main-container {
+         background: rgba(255, 255, 255, 0.05);
+         backdrop-filter: blur(10px);
+         border: 1px solid rgba(255, 255, 255, 0.1);
+         border-radius: 16px;
+         padding: 40px;
+         max-width: 600px;
+         width: 100%;
+         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+
+      h1 {
+         font-size: 28px;
+         font-weight: 600;
+         margin-bottom: 12px;
+         color: #ffffff;
+         text-align: center;
+         letter-spacing: -0.5px;
+      }
+
+      .subtitle {
+         text-align: center;
+         color: rgba(255, 255, 255, 0.7);
+         margin-bottom: 32px;
+         font-size: 14px;
+      }
+
+      .input-group {
+         margin-bottom: 24px;
+      }
+
+      label {
+         display: block;
+         margin-bottom: 8px;
+         font-size: 14px;
+         font-weight: 500;
+         color: rgba(255, 255, 255, 0.9);
+      }
+
+      input[type="text"] {
+         width: 100%;
+         padding: 14px 16px;
+         font-size: 16px;
+         background: rgba(255, 255, 255, 0.08);
+         border: 1px solid rgba(255, 255, 255, 0.2);
+         border-radius: 8px;
+         color: #ffffff;
+         transition: all 0.3s ease;
+         outline: none;
+      }
+
+      input[type="text"]::placeholder {
+         color: rgba(255, 255, 255, 0.4);
+      }
+
+      input[type="text"]:focus {
+         background: rgba(255, 255, 255, 0.12);
+         border-color: #4a9eff;
+         box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.15);
+      }
+
+      button {
+         width: 100%;
+         padding: 14px 24px;
+         font-size: 16px;
+         font-weight: 600;
+         background: linear-gradient(135deg, #4a9eff 0%, #2d7dd2 100%);
+         color: white;
+         border: none;
+         border-radius: 8px;
+         cursor: pointer;
+         transition: all 0.3s ease;
+         box-shadow: 0 2px 6px rgba(74, 158, 255, 0.15);
+      }
+
+      button:hover {
+         transform: translateY(-1px);
+         box-shadow: 0 3px 10px rgba(74, 158, 255, 0.25);
+      }
+
+      button:active {
+         transform: translateY(0);
+      }
+
+      button:disabled {
+         background: rgba(255, 255, 255, 0.1);
+         cursor: not-allowed;
+         box-shadow: none;
+         transform: none;
+      }
+
+      #userDetails {
+         margin-top: 24px;
+         padding: 20px;
+         background: rgba(0, 0, 0, 0.2);
+         border: 1px solid rgba(255, 255, 255, 0.1);
+         border-radius: 8px;
+         min-height: 100px;
+         display: none;
+      }
+
+      #userDetails.show {
+         display: block;
+         animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+         from {
+            opacity: 0;
+            transform: translateY(10px);
+         }
+
+         to {
+            opacity: 1;
+            transform: translateY(0);
+         }
+      }
+
+      #userDetails pre {
+         background: rgba(0, 0, 0, 0.3);
+         padding: 16px;
+         border-radius: 6px;
+         overflow-x: auto;
+         font-family: 'Courier New', monospace;
+         font-size: 14px;
+         line-height: 1.6;
+         color: #a5d6ff;
+         border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .error {
+         color: #ff6b6b;
+         font-weight: 500;
+         display: flex;
+         align-items: center;
+         gap: 8px;
+      }
+
+      .error::before {
+         content: "⚠";
+         font-size: 20px;
+      }
+
+      .success {
+         color: #51cf66;
+      }
+
+      .loading {
+         display: inline-block;
+         width: 16px;
+         height: 16px;
+         border: 2px solid rgba(255, 255, 255, 0.3);
+         border-top-color: #ffffff;
+         border-radius: 50%;
+         animation: spin 0.8s linear infinite;
+         margin-left: 8px;
+      }
+
+      @keyframes spin {
+         to {
+            transform: rotate(360deg);
+         }
+      }
+
+      .result-header {
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         margin-bottom: 12px;
+         padding-bottom: 12px;
+         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .result-title {
+         font-weight: 600;
+         color: rgba(255, 255, 255, 0.9);
+      }
+
+      .clear-btn {
+         background: none;
+         border: none;
+         color: rgba(255, 255, 255, 0.6);
+         cursor: pointer;
+         font-size: 12px;
+         padding: 4px 8px;
+         border-radius: 4px;
+         transition: all 0.2s;
+         width: auto;
+      }
+
+      .clear-btn:hover {
+         background: rgba(255, 255, 255, 0.1);
+         color: #ffffff;
+         transform: none;
+      }
+
+      .footer {
+         text-align: center;
+         margin-top: 32px;
+         padding-top: 24px;
+         border-top: 1px solid rgba(255, 255, 255, 0.1);
+         color: rgba(255, 255, 255, 0.5);
+         font-size: 14px;
+         font-weight: 500;
+      }
+
+      @media (max-width: 640px) {
+         #main-container {
+            padding: 24px;
+         }
+
+         h1 {
+            font-size: 24px;
+         }
+      }
+   </style>
+</head>
+
+<body>
+   <div id="main-container">
+      <h1>User Data Lookup</h1>
+      <p class="subtitle">Enter a user ID to retrieve information from the database</p>
+
+      <div class="input-group">
+         <label for="userId">User ID</label>
+         <input type="text" id="userId" placeholder="Enter User ID (e.g., 1)" />
+      </div>
+
+      <button id="fetchBtn" onclick="fetchUserData()">
+         <span id="btnText">Get User Data</span>
+      </button>
+
+      <div id="userDetails"></div>
+
+      <footer class="footer">
+         Made by Diego Losada
+      </footer>
+   </div>
+
+   <script>
+      const API_URL = 'https://[YOUR-PROD-API-URL]/users';
+
+      async function fetchUserData() {
+         const userId = document.getElementById('userId').value.trim();
+         const userDetails = document.getElementById('userDetails');
+         const fetchBtn = document.getElementById('fetchBtn');
+         const btnText = document.getElementById('btnText');
+
+         if (!userId) {
+            userDetails.innerHTML = '<p class="error">Please enter a User ID</p>';
+            userDetails.classList.add('show');
+            return;
+         }
+
+         // Show loading state
+         fetchBtn.disabled = true;
+         btnText.innerHTML = 'Loading<span class="loading"></span>';
+         userDetails.innerHTML = '';
+         userDetails.classList.remove('show');
+
+         try {
+            const response = await fetch(`${API_URL}?userId=${userId}`);
+            const data = await response.json();
+
+            if (response.ok) {
+               userDetails.innerHTML = `
+                        <div class="result-header">
+                            <span class="result-title">User Information</span>
+                            <button class="clear-btn" onclick="clearResults()">Clear</button>
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+            } else {
+               userDetails.innerHTML = `<p class="error">Error: ${data.error || data.message || 'Unknown error occurred'}</p>`;
+            }
+
+            userDetails.classList.add('show');
+         } catch (error) {
+            console.error('Failed to fetch user data:', error);
+            userDetails.innerHTML = `<p class="error">Network error: ${error.message}</p>`;
+            userDetails.classList.add('show');
+         } finally {
+            // Reset button state
+            fetchBtn.disabled = false;
+            btnText.textContent = 'Get User Data';
+         }
+      }
+
+      function clearResults() {
+         const userDetails = document.getElementById('userDetails');
+         userDetails.classList.remove('show');
+         document.getElementById('userId').value = '';
+         document.getElementById('userId').focus();
+      }
+
+      // Allow Enter key to submit
+      document.getElementById('userId').addEventListener('keypress', function (e) {
+         if (e.key === 'Enter') {
+            fetchUserData();
+         }
+      });
+   </script>
+</body>
+
+</html>
